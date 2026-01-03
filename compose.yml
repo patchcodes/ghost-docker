@@ -1,12 +1,12 @@
 ---
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-spec/main/schema/compose-spec.json
 services:
-  caddy:
-    image: caddy:2.10.2-alpine@sha256:953131cfea8e12bfe1c631a36308e9660e4389f0c3dfb3be957044d3ac92d446
+  rhi-ghost-http:
+    image: caddy:latest
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
+    # ports:
+    #   - "80:80"
+    #   - "443:443"
     environment:
       DOMAIN: ${DOMAIN:?DOMAIN environment variable is required}
       ADMIN_DOMAIN: ${ADMIN_DOMAIN:-}
@@ -19,6 +19,7 @@ services:
       - ghost
     networks:
       - ghost_network
+      - sites
 
   ghost:
     image: ghost:${GHOST_VERSION:-6-alpine}
@@ -47,7 +48,7 @@ services:
       - ghost_network
 
   db:
-    image: mysql:8.0.44@sha256:f37951fc3753a6a22d6c7bf6978c5e5fefcf6f31814d98c582524f98eae52b21
+    image: mysql:8
     restart: always
     expose:
       - "3306"
@@ -70,7 +71,7 @@ services:
       - ghost_network
 
   activitypub:
-    image: ghcr.io/tryghost/activitypub:1.1.0@sha256:39c212fe23603b182d68e67d555c6b9b04b1e57459dfc0bef26d6e4980eb04d1
+    image: ghcr.io/tryghost/activitypub:1.1.0
     restart: always
     expose:
       - "8080"
@@ -97,7 +98,7 @@ services:
   # Supporting Services
 
   activitypub-migrate:
-    image: ghcr.io/tryghost/activitypub-migrations:1.1.0@sha256:b3ab20f55d66eb79090130ff91b57fe93f8a4254b446c2c7fa4507535f503662
+    image: ghcr.io/tryghost/activitypub-migrations:1.1.0
     environment:
       MYSQL_DB: mysql://${DATABASE_USER:-ghost}:${DATABASE_PASSWORD:?DATABASE_PASSWORD environment variable is required}@tcp(db:3306)/activitypub
     networks:
@@ -114,3 +115,5 @@ volumes:
 
 networks:
   ghost_network:
+  sites:
+    external: true
